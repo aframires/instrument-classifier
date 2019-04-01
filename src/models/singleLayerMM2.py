@@ -1,12 +1,14 @@
 from __future__ import absolute_import, print_function, division
 
 import tensorflow as tf
+import sys
 import numpy as np
-from keras import backend as K
-from keras.models import Model
+#from tf.keras import backend as K
 from keras.layers import Convolution2D, BatchNormalization, MaxPooling2D, Flatten, Dense
 from keras.layers import Input, Dropout, concatenate
 from keras.layers.advanced_activations import ELU
+from keras.regularizers import l2
+
 from models.model_parent_class import ModelsParentClass
 
 
@@ -45,14 +47,11 @@ class SingleLayerMM2(ModelsParentClass):
         super()
 
     def forward_propogation(self, x):
+
+        input_shape = (N_MEL_BANDS, SEGMENT_DUR, 1)
+        channel_axis = 3
+        #melgram_input = Input(shape=input_shape)
         melgram_input = tf.reshape(x, [-1, 247, 80, 1])
-        if K.image_dim_ordering() == 'th':
-            input_shape = (1, N_MEL_BANDS, SEGMENT_DUR)
-            channel_axis = 1
-        else:
-            input_shape = (N_MEL_BANDS, SEGMENT_DUR, 1)
-            channel_axis = 3
-        melgram_input = Input(shape=input_shape)
 
         m_sizes = [50, 70]
         n_sizes = [1, 3, 5]
@@ -68,30 +67,43 @@ class SingleLayerMM2(ModelsParentClass):
                                   init='he_normal',
                                   W_regularizer=l2(1e-5),
                                   name=str(n_i) + '_' + str(m_i) + '_' + 'conv')(melgram_input)
+
+                #conv1 = tf.layers.conv2d(inputs=melgram_input, filters=n_filters[i], kernel_size=[m_i, n_i], padding="same",
+                #    kernel_initializer=l2(1e-5), name=str(n_i) + '_' + str(m_i) + '_' + 'conv')
+
+
                 x = BatchNormalization(axis=channel_axis, mode=0, name=str(n_i) + '_' + str(m_i) + '_' + 'bn')(x)
+                #norm = tf.layers.batch_normalization(inputs=conv1, axis=channel_axis, training=self.training,
+                #                                  name=str(n_i) + '_' + str(m_i) + '_' + 'bn')
                 x = ELU()(x)
+                #activation = tf.nn.elu(norm)
+
                 x = MaxPooling2D(pool_size=(N_MEL_BANDS, maxpool_size), name=str(n_i) + '_' + str(m_i) + '_' + 'pool')(
                     x)
+
+                #pool = tf.layers.max_pooling2d(inputs=activation, pool_size=[N_MEL_BANDS, maxpool_size],
+                #                               name=str(n_i) + '_' + str(m_i) + '_' + 'pool')
+
                 x = Flatten(name=str(n_i) + '_' + str(m_i) + '_' + 'flatten')(x)
+                #pool_flat = tf.contrib.layers.flatten(pool)
+
                 layers.append(x)
         x = concatenate(layers)
         x = Dropout(0.5)(x)
         x = Dense(N_CLASSES, init='he_normal', W_regularizer=l2(1e-5), activation='softmax', name='prediction')(x)
-        model = Model(melgram_input, x)
-
-
-
-
-        return model
+        #model = Model(melgram_input, x)
+        return x
 
     def train(self):
-        #super().print_message()
+        super().print_message()
         # Creating a graph
         graph = tf.Graph()
 
         with graph.as_default():
 
-
+            config = tf.ConfigProto()
+            config.gpu_options.per_process_gpu_memory_fraction = 0.75
+            config.gpu_options.polling_inactive_delay_msecs = 10
             # Create global step for savind models
             global_step = tf.train.get_or_create_global_step()
 
@@ -125,14 +137,22 @@ class SingleLayerMM2(ModelsParentClass):
             merged = tf.summary.merge_all()
             train_writer = tf.summary.FileWriter("logdir/binary/train")
             valid_writer = tf.summary.FileWriter("logdir/binary/valid")
+            train_writer.flush()
+            valid_writer.flush()
 
-        with tf.Session(graph=graph) as sess:
-            K.set_session(sess)
+
+        with tf.Session(graph=graph,config=config) as sess:
+            tf.keras.backend.set_session(sess)
             # initialize model parameters
             sess.run([init])
 
+
+            print(tf.trainable_variables())
+
+
+
             for epoch in range(self.num_epochs):
-                sess.run([iterator.initializer], feed_dict={filename: [self.train_data]})
+                sess.run([iterator.initializer], feed_dict={filename: [self.train_data], tf.keras.backend.learning_phase(): 1})
                 t_c = 0
                 t_l = 0
                 for train_iter in range(self.train_iters):
@@ -144,7 +164,9 @@ class SingleLayerMM2(ModelsParentClass):
                 val_loss = 0
                 count = 0
                 cm = np.zeros([self.nb_classes, self.nb_classes])
-                sess.run([iterator.initializer], feed_dict={filename: [self.valid_data]})
+                if epoch%10 == 0:
+                    saver.save(sess, './nsynth_binary_classifier', global_step=global_step)
+                sess.run([iterator.initializer], feed_dict={filename: [self.valid_data], tf.keras.backend.learning_phase(): 0})
                 for valid_iter in range(self.valid_iters):
                     acc, l, summary, confm = sess.run([accuracy, loss, merged, confusion_matrix])
                     c += np.squeeze(acc)
@@ -155,9 +177,9 @@ class SingleLayerMM2(ModelsParentClass):
                       float(val_loss / self.valid_iters), "Training accuracy:", float(t_c / self.train_iters),
                       "Training loss:", float(t_l / self.train_iters))
             print(cm)
-
+            sys.stdout.flush()
             # Save model for this epoch
-            # saver.save(sess, './src/saved_model/nsynth_binary_classifier', global_step=global_step)
+            saver.save(sess, './nsynth_binary_classifier', global_step=global_step)
 
     def test_load_from_tfrecords(self):
         graph = tf.Graph()
