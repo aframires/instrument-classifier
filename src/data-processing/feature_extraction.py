@@ -3,10 +3,12 @@ from __future__ import absolute_import, print_function, division
 import tensorflow as tf
 import numpy as np
 import argparse
+import os
 from scipy.io import wavfile
+import librosa
 
 
-def feature_extraction_fullnsynth(directory, write_directory):
+def feature_extraction_fullnsynth(directory, write_directory,n_mfcc, effect=None):
     ##Nice command sets priority of the process. This is important if you are sharing GPU resources!
     # os.nice(20)
 
@@ -29,7 +31,8 @@ def feature_extraction_fullnsynth(directory, write_directory):
 
         # Warp the linear scale spectrograms into the mel-scale.
         num_spectrogram_bins = stfts.shape[-1].value
-        lower_edge_hertz, upper_edge_hertz, num_mel_bins = 40.0, 7600.0, 80
+        lower_edge_hertz, upper_edge_hertz = 40.0, 7600.0
+        num_mel_bins = n_mfcc
         linear_to_mel_weight_matrix = tf.contrib.signal.linear_to_mel_weight_matrix(
             num_mel_bins, num_spectrogram_bins, 16000, lower_edge_hertz,
             upper_edge_hertz)
@@ -40,6 +43,8 @@ def feature_extraction_fullnsynth(directory, write_directory):
 
         # Compute a stabilized log to get log-magnitude mel-scale spectrograms.
         log_mel_spectrograms = tf.log(mel_spectrograms + 1e-6)
+        print(log_mel_spectrograms.shape)
+
 
     # The word_list is the list of instrument families you are interested in
     word_list = ['bass', 'brass', 'flute', 'guitar', 'keyboard', 'mallet', 'organ', 'reed', 'string', 'synth_lead',
@@ -50,7 +55,7 @@ def feature_extraction_fullnsynth(directory, write_directory):
     with tf.python_io.TFRecordWriter(write_directory) as writer:
         with tf.Session(graph=graph) as sess:
             for files in os.listdir(directory):
-                if (files.endswith(".wav") and any(word in files for word in word_list)):
+                if (files.endswith(effect + ".wav") and any(word in files for word in word_list)):
                     if (files.find("bass") != -1):
                         label = 0
                         count[0] += 1
@@ -87,12 +92,14 @@ def feature_extraction_fullnsynth(directory, write_directory):
 
                     # Read the audio file and normalize between -1 and 1
                     fs, data = wavfile.read(os.path.join(directory, files))
+                    data = data[0:64000] #cut longer sounds
                     data = data / np.max(np.abs(data))
                     x = np.reshape(data, [1, -1])
 
                     # Compute log mel spectrogram of the audio
                     spec = sess.run([log_mel_spectrograms], feed_dict={pcm: x})
-
+                    #print("spec:")
+                    #print(len(spec))
                     # Prepare the data to store as a tfrecord file
                     spec = np.asarray(spec, np.float32)
                     spec = np.squeeze(spec)
@@ -114,8 +121,15 @@ def feature_extraction_fullnsynth(directory, write_directory):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Adds a spectogram field to the TFRecord")
-    parser.add_argument("input", help="Input folder")
-    parser.add_argument("output", help="Output TFRecord file")
-    args = parser.parse_args()
-    feature_extraction_fullnsynth(args.input, args.output)
+    #parser = argparse.ArgumentParser(description="Adds a spectogram field to the TFRecord")
+    #parser.add_argument("--input", help="Input folder")
+    #parser.add_argument("--output", help="Output TFRecord file")
+    #arser.add_argument("--n_mfcc", help="Number of MFCC", type=int)
+    #args = parser.parse_args()
+    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-bitcrusher-spec.tfrecord", 80,'bitcrusher')
+    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-chorus-spec.tfrecord", 80,'chorus')
+    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-delay-spec.tfrecord", 80,'delay')
+    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-flanger-spec.tfrecord", 80,'flanger')
+    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-reverb-spec.tfrecord", 80,'reverb')
+    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-tube-spec.tfrecord", 80,'tube')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-pitch_shifting-spec.tfrecord", 80,'pitch_shifting')
