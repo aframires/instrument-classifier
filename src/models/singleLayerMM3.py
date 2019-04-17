@@ -266,3 +266,4 @@ class SingleLayerMM3(ModelsParentClass):
         label = tfrecord_features['label']
         label = tf.one_hot(label, self.nb_classes)
         return spec, label
+

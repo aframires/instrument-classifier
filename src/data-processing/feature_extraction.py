@@ -131,3 +131,4 @@ if __name__ == "__main__":
     feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-flanger-spec.tfrecord", 80,'flanger')
     feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-reverb-spec.tfrecord", 80,'reverb')
     feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-tube-spec.tfrecord", 80,'tube')
+
