@@ -5,7 +5,6 @@ import tensorflow as tf
 
 class ModelsParentClass():
 
-
     def read_from_tfrecord(self, data_record):
         tfrecord_features = tf.parse_single_example(data_record, features={'spec': tf.FixedLenFeature([], tf.string),
                                                                            'shape': tf.FixedLenFeature([], tf.string),
@@ -24,7 +23,6 @@ class ModelsParentClass():
         accuracy = tf.reduce_mean(tf.cast(equality, tf.float32))
         cm = tf.confusion_matrix(labels, prediction, num_classes=nb_classes)
         return accuracy, cm
-
 
     def print_message(self):
         print("Works so far")

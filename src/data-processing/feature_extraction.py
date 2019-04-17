@@ -5,7 +5,6 @@ import numpy as np
 import argparse
 import os
 from scipy.io import wavfile
-import librosa
 
 
 def feature_extraction_fullnsynth(directory, write_directory,n_mfcc, effect=None):
@@ -126,10 +125,10 @@ if __name__ == "__main__":
     #parser.add_argument("--output", help="Output TFRecord file")
     #arser.add_argument("--n_mfcc", help="Number of MFCC", type=int)
     #args = parser.parse_args()
-    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-bitcrusher-spec.tfrecord", 80,'bitcrusher')
-    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-chorus-spec.tfrecord", 80,'chorus')
-    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-delay-spec.tfrecord", 80,'delay')
-    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-flanger-spec.tfrecord", 80,'flanger')
-    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-reverb-spec.tfrecord", 80,'reverb')
-    #feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-tube-spec.tfrecord", 80,'tube')
-    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-pitch_shifting-spec.tfrecord", 80,'pitch_shifting')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-bitcrusher-spec.tfrecord", 80,'bitcrusher')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-chorus-spec.tfrecord", 80,'chorus')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-delay-spec.tfrecord", 80,'delay')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-flanger-spec.tfrecord", 80,'flanger')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-reverb-spec.tfrecord", 80,'reverb')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-tube-spec.tfrecord", 80,'tube')
+
