@@ -8,17 +8,7 @@ from scipy.io import wavfile
 
 
 def feature_extraction_fullnsynth(directory, write_directory,n_mfcc, effect=None):
-    ##Nice command sets priority of the process. This is important if you are sharing GPU resources!
-    # os.nice(20)
 
-    ##Add path to data directory here!
-    # directory = "/datasets/MTG/projects/NSynth/nsynth-valid/audio/"
-
-    ##Write directory
-    # write_directory = "/homedtic/aramires/NSynth/nsynth-valid-spec.tfrecord"
-
-    print(directory)
-    print(write_directory)
     graph = tf.Graph()
     with graph.as_default():
         pcm = tf.placeholder(tf.float32, [None, None])
@@ -97,15 +87,13 @@ def feature_extraction_fullnsynth(directory, write_directory,n_mfcc, effect=None
 
                     # Compute log mel spectrogram of the audio
                     spec = sess.run([log_mel_spectrograms], feed_dict={pcm: x})
-                    #print("spec:")
-                    #print(len(spec))
+
                     # Prepare the data to store as a tfrecord file
                     spec = np.asarray(spec, np.float32)
                     spec = np.squeeze(spec)
                     spec_raw = spec.tostring()
                     shape = np.array(spec.shape, np.int32)
                     shape_raw = shape.tostring()
-                    #label = np.array(label, np.int64)
                     label_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[label]))
                     spec_feature = tf.train.Feature(bytes_list=tf.train.BytesList(value=[spec_raw]))
                     shape_feature = tf.train.Feature(bytes_list=tf.train.BytesList(value=[shape_raw]))
@@ -125,10 +113,27 @@ if __name__ == "__main__":
     #parser.add_argument("--output", help="Output TFRecord file")
     #arser.add_argument("--n_mfcc", help="Number of MFCC", type=int)
     #args = parser.parse_args()
+    
     feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-bitcrusher-spec.tfrecord", 80,'bitcrusher')
     feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-chorus-spec.tfrecord", 80,'chorus')
     feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-delay-spec.tfrecord", 80,'delay')
     feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-flanger-spec.tfrecord", 80,'flanger')
     feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-reverb-spec.tfrecord", 80,'reverb')
     feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-tube-spec.tfrecord", 80,'tube')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-train\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-train-pitch_shifting-spec.tfrecord", 80,'pitch_shifting')
 
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-valid\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-valid-tube-spec.tfrecord", 80,'tube')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-valid\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-valid-bitcrusher-spec.tfrecord", 80,'bitcrusher')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-valid\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-valid-chorus-spec.tfrecord", 80,'chorus')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-valid\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-valid-delay-spec.tfrecord", 80,'delay')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-valid\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-valid-flanger-spec.tfrecord", 80,'flanger')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-valid\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-valid-reverb-spec.tfrecord", 80,'reverb')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-valid\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-valid-pitch_shifting-spec.tfrecord", 80,'pitch_shifting')
+
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-test\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-test-bitcrusher-spec.tfrecord", 80,'bitcrusher')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-test\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-test-chorus-spec.tfrecord", 80,'chorus')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-test\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-test-delay-spec.tfrecord", 80,'delay')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-test\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-test-flanger-spec.tfrecord", 80,'flanger')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-test\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-test-reverb-spec.tfrecord", 80,'reverb')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-test\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-test-tube-spec.tfrecord", 80,'tube')
+    feature_extraction_fullnsynth("F:\\Code\\Data\\NSynth\\nsynth-test\\audio\\processed\\", "F:\\Code\\Data\\NSynth\\nsynth-test-pitch_shifting-spec.tfrecord", 80,'pitch_shifting')

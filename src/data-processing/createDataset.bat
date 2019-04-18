@@ -1,3 +1,0 @@
-python feature_extraction.py "F:\\Code\\Data\\NSynth\\nsynth-test\\audio\\processed\\" "F:\\Code\\Data\\NSynth\\nsynth-test-fx-spec16.tfrecord" 16
-python feature_extraction.py "F:\\Code\\Data\\NSynth\\nsynth-test\\audio\\processed\\" "F:\\Code\\Data\\NSynth\\nsynth-test-fx-spec32.tfrecord" 32
-python feature_extraction.py "F:\\Code\\Data\\NSynth\\nsynth-test\\audio\\processed\\" "F:\\Code\\Data\\NSynth\\nsynth-test-fx-spec64.tfrecord" 64

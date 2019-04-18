@@ -3,8 +3,6 @@ from __future__ import absolute_import,print_function,division
 
 import tensorflow as tf
 
-#from models.model_basic_cnn import ModelBasicCNN
-#from models.singleLayerMM2 import SingleLayerMM2
 from models.singleLayerMM3 import SingleLayerMM3
 
 print('Whatsup man')
@@ -27,19 +25,6 @@ flags.DEFINE_string('dataset','nofx','Datasets to use for augmentation (all or s
 
 print(FLAGS)
 
-"""
-if(FLAGS.model_name=='model_basic_cnn'):
-    if(FLAGS.is_training):
-        #model = ModelBasicCNN(FLAGS.learning_rate,FLAGS.is_training,FLAGS.nb_classes,FLAGS.num_epochs,FLAGS.train_iters,FLAGS.valid_iters,FLAGS.batch_size,FLAGS.train_data,FLAGS.valid_data,FLAGS.dataset)
-        #model.test_load_from_tfrecords()
-        #model.train()
-
-if(FLAGS.model_name=='single_layer_mm2'):
-    if(FLAGS.is_training):
-        #model = SingleLayerMM2(FLAGS.learning_rate,FLAGS.is_training,FLAGS.nb_classes,FLAGS.num_epochs,FLAGS.train_iters,FLAGS.valid_iters,FLAGS.batch_size,FLAGS.train_data,FLAGS.valid_data,FLAGS.dataset)
-        #model.test_load_from_tfrecords()
-        #model.train()
-"""
 if(FLAGS.model_name=='single_layer_mm3'):
     if(FLAGS.is_training):
         print(FLAGS.valid_data)

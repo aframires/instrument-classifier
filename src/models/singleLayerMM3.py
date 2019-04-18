@@ -16,80 +16,10 @@ class ValCallback(tf.keras.callbacks.Callback):
 
         for dataset in self.val_data:
 
-            metrics = self.model.evaluate(dataset['data'],steps=12678,verbose=0) #12678
+            metrics = self.model.evaluate(dataset['data'],steps=12678,verbose=0)
 
             for metric in range(len(metrics)):
                 print('Dataset ' + dataset['name'] + '\tEpoch ' + str(epoch) + '\t' + self.model.metrics_names[metric] + ' ' + str(metrics[metric]))
-
-
-
-
-def f1(y_true, y_pred):
-    def recall(y_true, y_pred):
-        """Recall metric.
-
-        Only computes a batch-wise average of recall.
-
-        Computes the recall, a metric for multi-label classification of
-        how many relevant items are selected.
-        """
-        true_positives = tf.keras.backend.sum(tf.keras.backend.round(tf.keras.backend.clip(y_true * y_pred, 0, 1)))
-        possible_positives = tf.keras.backend.sum(tf.keras.backend.round(tf.keras.backend.clip(y_true, 0, 1)))
-        recall = true_positives / (possible_positives + tf.keras.backend.epsilon())
-        return recall
-
-    def precision(y_true, y_pred):
-        """Precision metric.
-
-        Only computes a batch-wise average of precision.
-
-        Computes the precision, a metric for multi-label classification of
-        how many selected items are relevant.
-        """
-        true_positives = tf.keras.backend.sum(tf.keras.backend.round(tf.keras.backend.clip(y_true * y_pred, 0, 1)))
-        predicted_positives = tf.keras.backend.sum(tf.keras.backend.round(tf.keras.backend.clip(y_pred, 0, 1)))
-        precision = true_positives / (predicted_positives + tf.keras.backend.epsilon())
-        return precision
-
-    precision = precision(y_true, y_pred)
-    recall = recall(y_true, y_pred)
-    return 2 * ((precision * recall) / (precision + recall + tf.keras.backend.epsilon()))
-
-
-def precision(y_true, y_pred):
-    """Precision metric.
-
-    Only computes a batch-wise average of precision.
-
-    Computes the precision, a metric for multi-label classification of
-    how many selected items are relevant.
-    """
-    true_positives = tf.keras.backend.sum(tf.keras.backend.round(tf.keras.backend.clip(y_true * y_pred, 0, 1)))
-    predicted_positives = tf.keras.backend.sum(tf.keras.backend.round(tf.keras.backend.clip(y_pred, 0, 1)))
-    precision = true_positives / (predicted_positives + tf.keras.backend.epsilon())
-    return precision
-
-
-def recall(y_true, y_pred):
-    """Recall metric.
-
-    Only computes a batch-wise average of recall.
-
-    Computes the recall, a metric for multi-label classification of
-    how many relevant items are selected.
-    """
-    true_positives = tf.keras.backend.sum(tf.keras.backend.round(tf.keras.backend.clip(y_true * y_pred, 0, 1)))
-    possible_positives = tf.keras.backend.sum(tf.keras.backend.round(tf.keras.backend.clip(y_true, 0, 1)))
-    recall = true_positives / (possible_positives + tf.keras.backend.epsilon())
-    return recall
-
-
-
-
-
-
-
-
 
 
 class SingleLayerMM3(ModelsParentClass):
@@ -97,10 +27,10 @@ class SingleLayerMM3(ModelsParentClass):
     N_MEL_BANDS = 80
     SEGMENT_DUR = 247
     SHUFFLE_BUFFER = 1000
-    EARLY_STOPPING_EPOCH = 30
+    EARLY_STOPPING_EPOCH = 10
     init_lr = 0.001
 
-    set_of_effects = set(['bitcrusher','chorus','delay','flanger','reverb','tube'])
+    set_of_effects = set(['bitcrusher','chorus','delay','flanger','reverb','tube','pitch_shifting'])
 
     def __init__(self, learning_rate, training, nb_classes, num_epochs, train_iters, valid_iters, batch_size,
                  train_data, valid_data,datasets):
@@ -117,21 +47,6 @@ class SingleLayerMM3(ModelsParentClass):
         self.optimizer = tf.keras.optimizers.Adam(lr=self.init_lr)
         self.datasets = datasets
         super()
-
-
-
-
-
-
-    #N_CLASSES = 11
-    #MODEL_WEIGHT_BASEPATH = 'weights/'
-    #MODEL_HISTORY_BASEPATH = 'history/'
-    #MODEL_MEANS_BASEPATH = 'means/'
-    #MAX_EPOCH_NUM = 400
-    #EARLY_STOPPING_EPOCH = 20
-    #
-    #BATCH_SIZE = 16
-
 
     def vertical_filter_model(self):
         input_shape = (self.N_MEL_BANDS, self.SEGMENT_DUR, 1)
@@ -170,7 +85,6 @@ class SingleLayerMM3(ModelsParentClass):
         train_dataset = self.create_dataset(self.train_data)
         val_dataset = self.create_dataset(self.valid_data)
         dataset_dict = [{'name': 'none', 'data': val_dataset}]
-
 
         if self.datasets == 'all':
             index_of_train = self.train_data.find("-spec")
@@ -221,20 +135,17 @@ class SingleLayerMM3(ModelsParentClass):
         model.summary()
         model.compile(optimizer=self.optimizer,
                       loss='categorical_crossentropy',
-                      metrics=['accuracy', f1, precision, recall]
+                      metrics=['accuracy']
                       )
 
-        history = model.fit(train_dataset,
-                            steps_per_epoch=self.train_iters,
-                            epochs=self.num_epochs,
-                            verbose=2,
-                            callbacks=[save_clb, early_stopping,validation_saver],
-                            validation_data=val_dataset,
-                            validation_steps=self.valid_iters)
-
-
+        model.fit(train_dataset,
+                  steps_per_epoch=self.train_iters,
+                  epochs=self.num_epochs,
+                  verbose=2,
+                  callbacks=[save_clb, early_stopping, validation_saver],
+                  validation_data=val_dataset,
+                  validation_steps=self.valid_iters)
         return
-
 
     def create_dataset(self, filepath):
         # This works with arrays as well
@@ -247,12 +158,7 @@ class SingleLayerMM3(ModelsParentClass):
         dataset = dataset.shuffle(self.SHUFFLE_BUFFER)
         # Set the batchsize
         dataset = dataset.batch(self.batch_size)
-        # Create an iterator
-        #iterator = dataset.make_one_shot_iterator()
-        # Create your tf representation of the iterator
-        #sound, label = iterator.get_next()
 
-        #return sound, label
         return dataset
 
     def _parse_function(self, example):
@@ -260,7 +166,6 @@ class SingleLayerMM3(ModelsParentClass):
                                                                            'shape': tf.FixedLenFeature([], tf.string),
                                                                            'label': tf.FixedLenFeature([], tf.int64)},
                                                                             name='features')
-        shape = tf.decode_raw(tfrecord_features['shape'], tf.int32)
         spec = tf.decode_raw(tfrecord_features['spec'], tf.float32)
         spec = tf.reshape(spec, [self.N_MEL_BANDS,self.SEGMENT_DUR,1])
         label = tfrecord_features['label']
