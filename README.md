@@ -10,7 +10,7 @@ We use the NSynth dataset, which is available [here](https://magenta.tensorflow.
 * [TAL-Tube](https://tal-software.com/products/tal-effects)
 * [TAL-Reverb-4](https://tal-software.com/products/tal-reverb-4)
 * [TAL-Chorus-LX](https://tal-software.com/products/tal-chorus-lx)
-* [TAL-Dub-2](https://tal-software.com/products/tal-dub}}
+* [TAL-Dub-2](https://tal-software.com/products/tal-dub)
 * [TAL-Flanger](https://tal-software.com/products/tal-effects)
 * [Camel Audio's CamelCrusher](https://www.kvraudio.com/product/camelcrusher-)
 * [Shattered Glass Audio's Ace](http://www.shatteredglassaudio.com/product/103)
