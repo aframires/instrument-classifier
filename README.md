@@ -21,7 +21,10 @@ We use the NSynth dataset, which is available [here](https://magenta.tensorflow.
 
 To apply the audio effects to wav files, [MrsWatson](https://github.com/teragonaudio/MrsWatson) should be installed.
 
-After the Nsynth dataset has been downloaded and the effects and MrsWatson installed, 'data-processing/batch-effect-processing.py' should be adapted to run on the desired directories. When this proccess finishes, the paths in 'data-processing/feature_extraction.py' should be modified to the correct directories and, then, running this script will create TFRecord dataset files for each audio effect.
+After the Nsynth dataset has been downloaded and the effects and MrsWatson installed, `data-processing/batch-effect-processing.py` should be adapted to run on the desired directories. When this proccess finishes, the paths in `data-processing/feature_extraction.py` should be modified to the correct directories and, then, running this script will create TFRecord dataset files for each audio effect.
 
-## Training
+## Training and evaluation
 
+To train the model, the `main.py` function should be called with the appropriate flags. The path to the training and validation sets should be set and the "effect" flag should be set to the desired effect: bitcrusher, chorus, delay, flanger, reverb, tube, pitch_shifting or none, if no effect is desired.
+
+The evaluation of each model on a dataset can be performed by running `predict.py` with the apropriate flags.
