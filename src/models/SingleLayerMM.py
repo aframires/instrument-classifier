@@ -16,18 +16,29 @@ class ValCallback(tf.keras.callbacks.Callback):
 
         for dataset in self.val_data:
 
-            metrics = self.model.evaluate(dataset['data'],steps=12678,verbose=0)
+            metrics = self.model.evaluate(dataset['data'],steps=634,verbose=0)
+            pred = self.model.predict(dataset['data'],steps=634,verbose=0)
+            pred = numpy.argmax(pred, axis=1)
+            true = numpy.loadtxt('labels.txt', dtype=int)
+            macro_p, macro_r, macro_f, nada = precision_recall_fscore_support(true, pred, average='macro',
+                                                                              labels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 10])
+            micro_p, micro_r, micro_f, nada = precision_recall_fscore_support(true, pred, average='micro',
+                                                                              labels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 10])
+
+            print('Dataset ' + dataset['name'] + '\tEpoch ' + str(epoch) + '\t MaP ' + str(macro_p) + '\t MaR ' + str(macro_r) + '\t MaF ' + str(macro_f))
+            print('Dataset ' + dataset['name'] + '\tEpoch ' + str(epoch) + '\t MiP ' + str(micro_p) + '\t MiR ' + str(micro_r) + '\t MiF ' + str(micro_f))
 
             for metric in range(len(metrics)):
                 print('Dataset ' + dataset['name'] + '\tEpoch ' + str(epoch) + '\t' + self.model.metrics_names[metric] + ' ' + str(metrics[metric]))
 
 
+
 class SingleLayerMM(ModelsParentClass):
 
-    N_MEL_BANDS = 80
+    N_MEL_BANDS = 96
     SEGMENT_DUR = 247
     SHUFFLE_BUFFER = 1000
-    EARLY_STOPPING_EPOCH = 10
+    EARLY_STOPPING_EPOCH = 15
     init_lr = 0.001
 
     set_of_effects = set(['bitcrusher','chorus','delay','flanger','reverb','tube','pitch_shifting'])
@@ -88,18 +99,26 @@ class SingleLayerMM(ModelsParentClass):
 
         if self.datasets == 'all':
             index_of_train = self.train_data.find("-spec")
+            index_of_valid = self.valid_data.find("-spec")
             self.train_iters = self.train_iters * (1 + len(self.set_of_effects))
             for effect in self.set_of_effects:
                 extended_data_path = self.train_data[:index_of_train] + '-' + effect + self.train_data[index_of_train:]
                 extended_dataset = self.create_dataset(extended_data_path)
                 train_dataset.concatenate(extended_dataset)
                 train_dataset.shuffle(self.SHUFFLE_BUFFER)
+            
+            for effect in self.set_of_effects:
 
-                print('Added all effects')
+                extended_valid_path = self.valid_data[:index_of_valid] + '-' + effect + self.valid_data[
+                                                                                               index_of_valid:]
+                valid_effect_dataset = self.create_dataset(extended_valid_path)
+                dataset_to_add = {'name': effect, 'data': valid_effect_dataset}
+                dataset_dict.append(dataset_to_add)
+            print('Added all effects')
 
         elif self.datasets == 'all-valid':
             index_of_valid = self.valid_data.find("-spec")
-            self.valid_iters = self.valid_iters * (1 + len(self.set_of_effects))
+            #self.valid_iters = self.valid_iters * (1 + len(self.set_of_effects))
             dataset_dict = [{'name': 'none', 'data': val_dataset}]
             for effect in self.set_of_effects:
 
@@ -109,7 +128,7 @@ class SingleLayerMM(ModelsParentClass):
                 dataset_to_add = {'name': effect, 'data': valid_effect_dataset}
                 dataset_dict.append(dataset_to_add)
 
-                print('Added all effects')
+            print('Added all effects')
 
         elif self.datasets in self.set_of_effects:
             index_of_train = self.train_data.find("-spec")
@@ -123,12 +142,12 @@ class SingleLayerMM(ModelsParentClass):
             extended_valid_path = self.valid_data[:index_of_valid] + '-' + self.datasets + self.valid_data[index_of_valid:]
             valid_effect_dataset = self.create_dataset(extended_valid_path)
             dataset_dict = [{'name':'none','data':val_dataset},{'name':self.datasets,'data':valid_effect_dataset}]
-            self.valid_iters = self.valid_iters * 2
+            #self.valid_iters = self.valid_iters * 2
             print('Added ' + self.datasets)
 
         model = self.vertical_filter_model()
         save_clb = tf.keras.callbacks.ModelCheckpoint(
-            './nsynth_binary_classifier_' + self.datasets + "_epoch.{epoch:02d}-val_loss.{val_loss:.3f}",
+            './SingleLayer_' + self.datasets + "_epoch.{epoch:02d}-val_loss.{val_loss:.3f}",
             monitor='val_loss',
             save_best_only=False)
         validation_saver = ValCallback(dataset_dict)

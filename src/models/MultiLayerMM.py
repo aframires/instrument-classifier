@@ -39,7 +39,7 @@ class MultiLayerMM(ModelsParentClass):
 
     N_MEL_BANDS = 96
     SEGMENT_DUR = 247
-    SHUFFLE_BUFFER = 10
+    SHUFFLE_BUFFER = 1000
     EARLY_STOPPING_EPOCH = 15
     init_lr = 0.001
 
@@ -125,18 +125,27 @@ class MultiLayerMM(ModelsParentClass):
 
         if self.datasets == 'all':
             index_of_train = self.train_data.find("-spec")
+            index_of_valid = self.valid_data.find("-spec")
             self.train_iters = self.train_iters * (1 + len(self.set_of_effects))
             for effect in self.set_of_effects:
                 extended_data_path = self.train_data[:index_of_train] + '-' + effect + self.train_data[index_of_train:]
                 extended_dataset = self.create_dataset(extended_data_path)
                 train_dataset.concatenate(extended_dataset)
                 train_dataset.shuffle(self.SHUFFLE_BUFFER)
+            
+            for effect in self.set_of_effects:
 
-                print('Added all effects')
+                extended_valid_path = self.valid_data[:index_of_valid] + '-' + effect + self.valid_data[
+                                                                                               index_of_valid:]
+                valid_effect_dataset = self.create_dataset(extended_valid_path)
+                dataset_to_add = {'name': effect, 'data': valid_effect_dataset}
+                dataset_dict.append(dataset_to_add)
+            print('Added all effects')
+
 
         elif self.datasets == 'all-valid':
             index_of_valid = self.valid_data.find("-spec")
-            self.valid_iters = self.valid_iters * (1 + len(self.set_of_effects))
+            #self.valid_iters = self.valid_iters * (1 + len(self.set_of_effects))
             dataset_dict = [{'name': 'none', 'data': val_dataset}]
             for effect in self.set_of_effects:
 
@@ -160,12 +169,12 @@ class MultiLayerMM(ModelsParentClass):
             extended_valid_path = self.valid_data[:index_of_valid] + '-' + self.datasets + self.valid_data[index_of_valid:]
             valid_effect_dataset = self.create_dataset(extended_valid_path)
             dataset_dict = [{'name':'none','data':val_dataset},{'name':self.datasets,'data':valid_effect_dataset}]
-            self.valid_iters = self.valid_iters * 2
+            #self.valid_iters = self.valid_iters * 2
             print('Added ' + self.datasets)
 
         model = self.vertical_filter_model()
         save_clb = tf.keras.callbacks.ModelCheckpoint(
-            './nsynth_binary_classifier_' + self.datasets + "_epoch.{epoch:02d}-val_loss.{val_loss:.3f}",
+            './MLMM_' + self.datasets + "_epoch.{epoch:02d}-val_loss.{val_loss:.3f}",
             monitor='val_loss',
             save_best_only=False)
         validation_saver = ValCallback(dataset_dict)
